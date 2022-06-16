@@ -3,41 +3,79 @@ using System.Linq;
 
 namespace DijkstraAlgorithmus
 {
-    class Program
+    internal class Program
     {
-            static Graph graph = new Graph();
-            public static void Main(string[] args)
-            {
-                int countID = 0;
-                for (int countX = 0; countX < Config.COUNTCOLS; countX++)
-                {
-                    for (int countY = 0; countY < Config.COUNTROWS; countY++)
-                    {
-                        graph.AddNodes(new Node(countX, countY, countID));
-                        countID++;
-                    }
+        private static readonly Graph s_Graph = new();
+
+        public static void Main() {
+            var sw = new System.Diagnostics.Stopwatch();
+
+            // Setup
+            sw.Start();
+
+            var countId = 0;
+            var tempNodes = new Node[Config.COUNT_COLS, Config.COUNT_ROWS];
+
+            for (var countX = 0; countX < Config.COUNT_COLS; countX++) {
+                for (var countY = 0; countY < Config.COUNT_ROWS; countY++) {
+                    var node = new Node(countX, countY, countId);
+                    tempNodes[countX, countY] = node;
+                    s_Graph.AddNodes(node);
+                    countId++;
                 }
-
-                foreach (var n1 in graph.Nodes)
-                {
-                    var neighbours = graph.GetNeighbours(n1);
-                    foreach (var n2 in neighbours)
-                    {
-                        graph.AddEdge(n1, n2, 1);
-                    }
-                } // 7 Sekunden
-
-                Dijkstra d = new Dijkstra(graph);
-
-                Node startNode = graph.Nodes.ElementAt(0);
-                Node targetNode = graph.Nodes.ElementAt(Config.COUNTCOLS * Config.COUNTROWS - 1);
-                var path = d.FindShortestPath(startNode, targetNode); // 4 Sekunden
-                Console.WriteLine("Dijkstra Pfad!");
-                foreach (var pathNode in path)
-                {
-                    Console.WriteLine("Path Node ID: " + pathNode.Id);
-                }
-                Console.ReadKey();
             }
+
+            // Horizontale Edges
+            for (var y = 0; y < Config.COUNT_ROWS; ++y) {
+                for (var x = 0; x < Config.COUNT_COLS - 1; ++x) {
+                    s_Graph.AddEdge(tempNodes[x, y], tempNodes[x + 1, y], 1);
+                    s_Graph.AddEdge(tempNodes[x + 1, y], tempNodes[x, y], 1);
+                }
+            }
+
+            // Vertikale Edges
+            for (var x = 0; x < Config.COUNT_COLS; ++x) {
+                for (var y = 0; y < Config.COUNT_ROWS - 1; ++y) {
+                    s_Graph.AddEdge(tempNodes[x, y], tempNodes[x, y + 1], 1);
+                    s_Graph.AddEdge(tempNodes[x, y + 1], tempNodes[x, y], 1);
+                }
+            }
+
+            // Create
+            var d = new Dijkstra(s_Graph);
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+
+            // 3.6 Sekunden (Ursprung)
+            // 2.2 Sekunden (Readonly Struct)
+            // 2.4 Sekunden (Readonly Class)
+            // 1.3 Sekunden (tempNodes statt GetNeighbours)
+
+            // 1323 Millisekunden (Debug)
+            //    8 Millisekunden (Release)
+
+
+            // Execute
+            sw.Restart();
+            var startNode = s_Graph.Nodes[0];
+            var targetNode = s_Graph.Nodes[Config.COUNT_COLS * Config.COUNT_ROWS - 1];
+
+            var path = d.FindShortestPath(startNode, targetNode);
+            // 5.5 Sekunden (Ursprung Debug)
+            // 3.1 Sekunden (Ursprung Release)
+
+            // 859 Millisekunden (Debug)
+            // 400 Millisekunden (Release)
+
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+            Console.WriteLine(path.Count());
+
+            //foreach (var pathNode in path) {
+            //    Console.WriteLine("Path Node ID: " + pathNode.Id);
+            //}
+
+            Console.ReadKey();
+        }
     }
 }

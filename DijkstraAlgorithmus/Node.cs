@@ -1,22 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
 
 namespace DijkstraAlgorithmus
 {
-    public class Node
+    public class Node : IEquatable<Node>
     {
-        public int Id { get; }
-        public int X { get; }
-        public int Y { get; }
-        public Node(int x, int y, int id)
-        {
+        public readonly int Id;
+        public readonly int X;
+        public readonly int Y;
+
+        public Node(int x, int y, int id) {
             X = x;
             Y = y;
             Id = id;
         }
 
-        public override string ToString()
-        {
-            return "ID: " + Id;
-        }
+        public static bool operator ==(Node left, Node right) => left.Id == right.Id;
+
+        public static bool operator !=(Node left, Node right) => !(left == right);
+
+        public override string ToString() => "ID: " + Id;
+
+        public override bool Equals(object obj) => obj is Node node && Equals(node);
+
+        public override int GetHashCode() => Id;
+
+        public bool Equals(Node other) => Id == other.Id;
     }
 }
