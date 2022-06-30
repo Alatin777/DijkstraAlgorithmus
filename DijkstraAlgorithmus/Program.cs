@@ -41,10 +41,12 @@ namespace DijkstraAlgorithmus
                 }
             }
 
-            // Create
-            var d = new Dijkstra(s_Graph);
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
+
+            // Create
+            var d = new Dijkstra(s_Graph);
+            var astar = new Astar(s_Graph);
 
             // 3.6 Sekunden (Ursprung)
             // 2.2 Sekunden (Readonly Struct)
@@ -59,22 +61,21 @@ namespace DijkstraAlgorithmus
             sw.Restart();
             var startNode = s_Graph.Nodes[0];
             var targetNode = s_Graph.Nodes[Config.COUNT_COLS * Config.COUNT_ROWS - 1];
-
-            var path = d.FindShortestPath(startNode, targetNode);
+            var astarPath = astar.FindShortestPath(startNode, targetNode);
+            // 438 Millisekunden (Release)
+            Console.WriteLine("Astar:" + sw.Elapsed);
+            Console.WriteLine(astarPath.Count());
+            sw.Stop();
+            sw.Restart();
+            var dijkstraPath = d.FindShortestPath(startNode, targetNode);
+            sw.Stop();
+            Console.WriteLine("Dijkstra:"+sw.Elapsed);
+            Console.WriteLine(dijkstraPath.Count());
             // 5.5 Sekunden (Ursprung Debug)
             // 3.1 Sekunden (Ursprung Release)
 
             // 859 Millisekunden (Debug)
             // 400 Millisekunden (Release)
-
-            sw.Stop();
-            Console.WriteLine(sw.Elapsed);
-            Console.WriteLine(path.Count());
-
-            //foreach (var pathNode in path) {
-            //    Console.WriteLine("Path Node ID: " + pathNode.Id);
-            //}
-
             Console.ReadKey();
         }
     }
